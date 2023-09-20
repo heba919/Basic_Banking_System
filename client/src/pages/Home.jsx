@@ -1,4 +1,4 @@
-import React from "react";
+import React  from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const divStyle = {
@@ -9,13 +9,58 @@ const divStyle = {
     
 };
 
+const loadScript =  (src) => {
+  return new Promise((res) =>{
+    const script = document.createElement('script');
+    script.src = src ;
+    script.onload = ()=>{
+      res(true);
+    }
+    script.onerror= () =>{
+      res(false);
+    }
+      document.body.appendChild(script);
+    })
+}
 
 export function Home() {
-  
+
+  const displayRazorpay= async() => {
+     const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js')
+
+		if (!res) { alert('Razorpay failed')
+    return }
+
+		const data = await fetch('http://localhost:3002/razorpay', { method: 'POST' }).then((t) =>
+			t.json())
+
+	   	const options = {
+      key:"rzp_test_BEDbe8xY9hKINs" ,
+			currency: data.currency,
+			amount: data.amount.toString(),
+			order_id: data.id,
+			name: 'Donation',
+			handler: function (response) {
+        alert("Thank you !!")
+			},
+			prefill: {
+				name:'Heba ',
+				email: 'waledheba91@gmail.com',
+	
+			}
+		}
+		const paymentObject = new window.Razorpay(options)
+		paymentObject.open()
+
     
+    
+   
+    
+  };
+
   return (
     <>
- 
+
   <div className="" style={divStyle}>
         <div className="col-xl-7 p-5">
           <div className="container p-5 m-5 ">
@@ -53,18 +98,24 @@ export function Home() {
                 fontSize: "20px",
               }}
             >
+           
               <Link className="btn  btn-outline-info" to="/MakeTrans">
-               Make a Transaction... 
+                  Make a Transaction... 
               </Link>
+
+                <button id="pay-button" className="btn  btn-outline-light m-2" onClick={displayRazorpay}
+                    target="_blank"
+                  
+                     >
+                Donate 5₹
+                </button>
+         
             </div>
           </div>
         </div>
 
-
-
-
     </div>
-    
+  
     </>
   );
 }

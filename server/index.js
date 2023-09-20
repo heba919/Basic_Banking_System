@@ -1,18 +1,22 @@
-// server/index.js
 const express = require("express");
+const Razorpay = require ("razorpay");
+const shortid = require('shortid')
+const cors = require('cors');
 const {connectToDb , getDb} = require ('./dbConnection');
 const PORT = process.env.PORT || 3002;
 let DB
 const app = express();
-app.use(express.json());
-const cors = require('cors');
 app.use(cors());
+app.use(express.json());
+
+const razorpay = new Razorpay({
+  key_id: "rzp_test_BEDbe8xY9hKINs",
+  key_secret:  "CDVtLgim6ja6yB8OJ7udGhmN"
+
+});
 
 
-
-
-
-  connectToDb((err)=>{
+ connectToDb((err)=>{
     if(!err) {
       app.listen(PORT, () => {
         console.log(`Server listening on ${PORT}`);
@@ -27,6 +31,34 @@ app.use(cors());
 
 
 //Routes
+
+app.post('/razorpay', async (req, res) => {
+	const payment_capture = 1
+	const amount = 5
+	const currency = 'INR'
+
+	const options = {
+		amount: amount * 100,
+		currency,
+		receipt: shortid.generate(),
+		payment_capture
+	}
+  
+
+	try {
+		const response = await razorpay.orders.create(options)
+		console.log(response)
+		res.json({
+			id: response.id,
+			currency: response.currency,
+			amount: response.amount
+		})
+	} catch (error) {
+		console.log(error)
+	}
+})
+///////////////////
+
 app.get("/customers", (req, res) => {
   let users =[];
 
